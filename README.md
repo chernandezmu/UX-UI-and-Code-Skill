@@ -35,4 +35,4 @@ Ask Claude for a website, landing page, animation or transition in this style. T
 
 ## Author
 
-Carlos David Hernández Mutis
+Carlos Hernández
