@@ -1,540 +1,223 @@
 ---
 name: ux-ui-and-code-skill
-description: Especificaciones UX/UI para webs, animaciones y transiciones de estilo noir editorial (oscuras, tipográficas, cinemáticas), adaptadas al stack elegido (HTML/CSS/JS, Svelte, Astro, NestJS, React u otro) y con auditoría de qué elementos usar u omitir.
+description: Sistema completo para crear startups, MVPs, SaaS, landings, apps y webs de nivel profesional, organizado por etapas (planificación, diseño, código, automatizaciones, seguridad, optimización). Primero pregunta qué se necesita y qué priorizar y escribe el ROADMAP; luego genera el sistema de diseño (noir editorial, producto shadcn/ui o 79 estilos con motor local), diseña en código, Claude Design, Google Stitch o Figma, implementa por stack, automatiza CI/CD y flujos de negocio, endurece la seguridad con revisión y auditoría, y pule rendimiento, SEO y accesibilidad. Úsala al crear o rediseñar una web, landing, app, dashboard o startup; al elegir colores, tipografía, componentes o animaciones; al trabajar con shadcn/ui, Tailwind, React, Next.js, Svelte, Astro, Vue o NestJS; al usar Claude Design o Stitch; o al revisar UI, accesibilidad, rendimiento o seguridad.
 ---
 
-# UX-UI and Code Skill
+# UX-UI and Code Skill · v2
 
-Un sistema para construir webs que se sienten como un objeto de autor: fondo casi negro, tipografía gigante que *es* la imagen, metadatos pequeños en mono, numeración por todas partes y un movimiento lento, preciso y con peso. Nada es plantilla; todo parece hecho a mano y con intención.
+Convierte una idea (o un proyecto existente) en un producto que se ve, se mueve y se defiende como uno hecho por un equipo senior, **por etapas y preguntando antes de construir**.
 
-Aplica esta skill completa. Si el usuario pide solo una parte (p. ej. "una transición"), usa igualmente los tokens, easings y reglas de este documento para que la pieza pertenezca al mismo mundo.
-
----
-
-## 0. Paso previo: stack y auditoría de elementos
-
-Haz esto **antes** de escribir código. El estilo (§1–§5) es el mismo en todos los stacks; lo que cambia es con qué herramientas se implementa y qué piezas sobran.
-
-### 0.1 Definir el formato de programación
-
-1. Si hay un proyecto existente, **detecta el stack tú mismo** (`package.json`, `astro.config.*`, `svelte.config.*`, `next.config.*`, `nest-cli.json`, archivos `.html` sueltos) en vez de preguntar.
-2. Si no hay proyecto y el usuario no lo dijo, pregunta una sola vez con estas opciones:
-   - **HTML, CSS y JS** (sin framework)
-   - **Svelte / SvelteKit**
-   - **Astro**
-   - **NestJS**
-   - **React** (Vite o Next.js)
-   - **Other** (pide cuál: Vue/Nuxt, Angular, WordPress, Webflow, Framer…)
-3. Si no hay respuesta, usa **HTML, CSS y JS** y dilo en una línea.
-4. **NestJS es backend**: no renderiza animaciones por sí solo. Pregunta (o detecta) qué pinta la interfaz:
-   - Nest sirve archivos estáticos (`ServeStaticModule`) → aplica la columna HTML/CSS/JS.
-   - Nest con motor de plantillas (Handlebars, Pug, EJS) → HTML/CSS/JS dentro de las vistas; scripts en `public/`.
-   - Nest como API + frontend separado → aplica la columna del frontend (React, Svelte, Astro…). Nest solo entrega datos.
-
-### 0.2 Matriz por stack: qué usar y qué sobra
-
-| Pieza | HTML/CSS/JS | React (Vite) | Next.js | Svelte / SvelteKit | Astro |
-|---|---|---|---|---|---|
-| **Scroll suave** | `lenis` por CDN | `lenis/react` (`<ReactLenis root>`) | `lenis/react` en un componente `'use client'` del layout | `lenis` en `onMount` de `+layout.svelte` | `lenis` en un `<script>` del layout |
-| **Motor de animación** | GSAP + ScrollTrigger por CDN | `gsap` + `@gsap/react` (`useGSAP` con `scope`, limpia solo) | Igual que React, solo en componentes cliente | GSAP para scroll; `svelte/transition` y `svelte/motion` (`tweened`, `spring`) para micro y menú | GSAP en `<script>` (Astro lo empaqueta) |
-| **División de texto** | `SplitType` o GSAP SplitText | SplitText dentro de `useGSAP` | Igual que React | Action `use:reveal` que hace el split | En el `<script>`, sobre `data-reveal` |
-| **Transición de página** | View Transitions entre documentos (`@view-transition { navigation: auto; }`) o Barba.js | `motion` (`AnimatePresence`) con el router, o View Transitions | `template.tsx` o View Transitions | `onNavigate` + `document.startViewTransition` | `<ClientRouter />` nativo + `transition:name` / `transition:animate` |
-| **Fuentes** | `<link>` de Google Fonts | `@fontsource/*` | `next/font/google` | `@fontsource/*` | `@fontsource/*` |
-| **Dónde va el código** | `styles.css` + `main.js` | Hooks / componentes (`<Reveal>`, `<Magnetic>`) | Igual + `'use client'` | Actions y componentes | Componentes `.astro` + `<script>`; islas solo si hay estado |
-| **Sobra** | Bundler, framework, Framer Motion | Barba, jQuery, `querySelectorAll` global, `useEffect` sin limpieza | Barba, `react-router`, `<link>` de fuentes | Barba, Framer Motion, librerías de React, `quickTo` (usa `spring`) | Barba, isla de React solo para animar, `client:load` innecesario |
-
-Reglas al traducir las recetas del §6 (escritas en JS plano):
-- **React / Next:** usa refs y `useGSAP({ scope })`, nunca selectores globales. Todo lo que toque `window` va en el cliente.
-- **Svelte:** cada receta se vuelve una *action* (`use:magnetic`, `use:reveal`) que devuelve `destroy()`.
-- **Astro:** re-inicializa en `document.addEventListener("astro:page-load", init)` si usas `<ClientRouter />`, y mata los ScrollTriggers al salir (`astro:before-swap`).
-- **Todos:** nada de `window`/`document` al nivel superior del módulo (rompe SSR); limpia ScrollTriggers y listeners al desmontar.
-- **Other:** busca primero lo nativo del framework (p. ej. `<Transition>` y `pageTransition` en Vue/Nuxt) y usa GSAP + Lenis solo para lo que no cubre.
-
-### 0.3 Auditoría: qué elementos necesita y cuáles sobran
-
-Antes de construir, clasifica cada pieza en **Necesaria / Opcional / Sobra**.
-
-**1. Según el tipo de sitio**
-
-| Pieza (§6) | Portfolio / música / lanzamiento | Landing de producto / SaaS | E-commerce / sitio de contenido |
-|---|---|---|---|
-| Preloader con contador (6.2) | Necesaria | Opcional (≤1.5s) | Sobra |
-| Reveal de texto e imagen (6.3, 6.7) | Necesaria | Necesaria | Necesaria (más corta) |
-| Statement con scrub (6.4) | Necesaria | Opcional | Sobra |
-| Botón magnético (6.5) | Opcional | Opcional (solo CTA principal) | Sobra |
-| Cursor y rastro de tinta (6.6) | Opcional | Sobra | Sobra |
-| Grain (6.8) | Necesaria | Opcional | Opcional |
-| CRT / glitch (6.9, 6.10) | Opcional | Sobra | Sobra |
-| Marquee (6.11) | Opcional | Opcional | Opcional |
-| Scroll horizontal (6.12) | Opcional | Opcional | Sobra |
-| Transición de página (6.14) | Necesaria si hay varias páginas | Opcional | Sobra (prioriza velocidad) |
-| Three.js / WebGL | Solo con un objeto 3D con propósito | Sobra salvo demo de producto | Sobra |
-
-Reglas fijas:
-- Una sola página → sin transición de página ni Barba.
-- Sin escena 3D → sin Three.js.
-- Sin sección horizontal → sin pin.
-- Sin sonido diseñado → sin toggle de sonido.
-
-**2. Dependencias redundantes (elimínalas si aparecen)**
-- Dos motores de animación para lo mismo (GSAP + Framer Motion, o GSAP + anime.js).
-- Dos scrolls suaves (Lenis + Locomotive, o Lenis + `scroll-behavior: smooth`).
-- Barba.js en un framework que ya tiene transiciones de router.
-- AOS, ScrollReveal, WOW.js o animate.css (ScrollTrigger ya lo cubre).
-- jQuery solo para selectores o eventos.
-- SplitType si ya usas GSAP SplitText (o al revés).
-- Librerías de iconos completas para 3–4 flechas (usa `↗ → ↑` o SVG en línea).
-- Fuentes cargadas que no se usan, o más de 3 familias.
-
-**3. Si hay código existente**
-1. Lee `package.json`, imports y CSS global.
-2. Lista dependencias redundantes, código muerto (animaciones sin elemento, estilos sin uso) y piezas que contradicen el estilo (§10).
-3. Propón qué quitar y qué añadir **antes** de editar. Borra solo con el visto bueno del usuario.
-
-**4. Entregable de esta fase**
-
-Abre la respuesta con un resumen corto como este:
-
-```
-Stack: Astro 5 · Tipo: portfolio multipágina
-Usar:   Lenis, GSAP + ScrollTrigger, SplitText, <ClientRouter />, @fontsource (Anton, Inter Tight, JetBrains Mono)
-Omitir: Barba (Astro ya tiene transiciones), Three.js (no hay 3D), CRT/glitch (no encaja con el tono)
-Quitar: aos, animate.css (redundantes con ScrollTrigger)
-```
-
-Después sigue con el diseño y el código.
-
----
-
-## 1. Principios (léelos antes de diseñar)
-
-1. **La tipografía es el hero.** El elemento principal casi nunca es una foto: es una palabra o wordmark que ocupa el ancho del viewport. Las imágenes acompañan, no protagonizan.
-2. **Contraste de escalas extremo.** Titulares de 12–22vw conviven con etiquetas de 11–12px. No hay tamaños "medianos" de relleno.
-3. **Todo está indexado.** Secciones, proyectos, tracks, figuras y notas llevan numeración: `01/`, `A1`, `B2`, `fig. 02`, `[ 03 ]`, superíndices¹. Da sensación de archivo, catálogo o disco.
-4. **El movimiento tiene peso.** Entradas lentas (0.9–1.4s), salidas rápidas (0.4–0.6s), easing exponencial. Nada rebota, nada es lineal salvo marquees y loops.
-5. **El sitio es un objeto, no un documento.** Preloader con ritual, sonido opcional, cursor propio, estados de sistema ("cargando…", "disponible"), easter eggs. El usuario *entra* a algo.
-6. **Silencio visual.** Mucho negro, mucho espacio, una sola acentuación de color por pantalla. La riqueza viene del movimiento y la tipografía, no de decoración.
-7. **Detalle obsesivo en lo pequeño.** Copiar al portapapeles con feedback "Copied!", flechas ↗ en enlaces externos, hora local en vivo, contador de scroll, labels entre corchetes. Los píxeles son pequeños; los detalles no.
-
----
-
-## 2. Tokens de diseño
-
-### 2.1 Color
-
-Base oscura con un tinte (nunca `#000` puro salvo en video/canvas). Un solo acento.
-
-```css
-:root {
-  /* Superficies */
-  --bg:         #0a0a0b;   /* negro tinta (alternativas: #08090c azulado, #14100a cálido) */
-  --bg-elev:    #121214;   /* tarjetas, menús */
-  --line:       rgba(255,255,255,0.10); /* hairlines 1px */
-  /* Texto */
-  --fg:         #ecebe7;   /* hueso, no blanco puro */
-  --fg-muted:   rgba(236,235,231,0.55);
-  --fg-faint:   rgba(236,235,231,0.28);
-  /* Acento — elige UNO por proyecto */
-  --accent:     #d8ff3d;   /* ácido. Alternativas: #ff4d1f naranja, #c9a46a oro, #7cf2c6 fósforo */
-  /* Inversión (secciones claras ocasionales) */
-  --paper:      #ecebe7;
-  --ink:        #0a0a0b;
-}
-```
-
-Reglas:
-- El acento se usa en ≤3 lugares por viewport: un punto de estado `●`, un hover, un CTA.
-- Secciones invertidas (`--paper` / `--ink`) solo como "golpe" puntual — testimonios, CTA final o footer.
-- Variante opcional **CRT/fósforo**: `--fg: #b8ffb0` sobre `#050805` con scanlines (ver §6.9). Permite temas intercambiables vía `[data-theme]`.
-
-### 2.2 Tipografía
-
-Tres roles, nunca más:
-
-| Rol | Uso | Fuentes sugeridas (Google Fonts) | Estilo |
-|---|---|---|---|
-| **Display** | Hero, títulos de sección, números grandes | `Anton`, `Bebas Neue`, `Archivo Black`, `Big Shoulders Display`, `Unbounded` | MAYÚSCULAS, tracking −0.02 a −0.04em, line-height 0.82–0.9 |
-| **Texto** | Párrafos, descripciones | `Inter Tight`, `Manrope`, `Instrument Sans` | 16–20px, line-height 1.45, peso 400 |
-| **Mono / sistema** | Labels, índices, metadatos, nav, botones | `JetBrains Mono`, `IBM Plex Mono`, `Space Mono` | 11–13px, MAYÚSCULAS, tracking +0.06 a +0.12em |
-
-Opcional: un **serif itálico** (`Instrument Serif` o `Fraunces` italic) para una sola palabra de énfasis dentro de un titular display.
-
-```css
-:root {
-  --f-display: "Anton", "Bebas Neue", Impact, sans-serif;
-  --f-text:    "Inter Tight", system-ui, sans-serif;
-  --f-mono:    "JetBrains Mono", ui-monospace, monospace;
-
-  --t-mega:  clamp(4.5rem, 19vw, 22rem);  /* wordmark hero */
-  --t-xl:    clamp(3rem, 10vw, 10rem);    /* títulos de sección */
-  --t-l:     clamp(2rem, 5vw, 4.5rem);    /* statements */
-  --t-m:     clamp(1.25rem, 2.2vw, 1.75rem);
-  --t-body:  clamp(1rem, 1.1vw, 1.125rem);
-  --t-label: 0.75rem;                      /* 12px mono */
-}
-.display { font-family: var(--f-display); text-transform: uppercase;
-           line-height: .86; letter-spacing: -.03em; }
-.label   { font-family: var(--f-mono); font-size: var(--t-label);
-           text-transform: uppercase; letter-spacing: .1em; color: var(--fg-muted); }
-```
-
-Patrones tipográficos firma:
-- **Label entre corchetes:** `[ WHAT I DO ]`, `[ CASE STUDIES ]`.
-- **Bullet de estado:** `● TRACKLIST`, `● DISPONIBLE` (el `●` en `--accent`, opcionalmente parpadeando).
-- **Titular apilado repetido:** la misma palabra 3–4 veces en líneas, con opacidad decreciente o en outline (`-webkit-text-stroke: 1px var(--fg)` + `color: transparent`), que se revela una a una al hacer scroll.
-- **Punto final como logo:** `NOMBRE.`, `FEATURED.` — el punto en acento.
-- **Footnotes:** superíndices numerados en el texto¹ que remiten a notas pequeñas en mono más abajo.
-- **Líneas tipo terminal/log:** `[ OK ] módulo ........... listo` para preloaders o secciones "sistema".
-
-### 2.3 Espaciado y grid
-
-```css
-:root {
-  --gutter: clamp(16px, 2vw, 32px);
-  --cols: 12;
-  --space-1: .5rem; --space-2: 1rem; --space-3: 2rem;
-  --space-4: 4rem;  --space-5: 8rem; --space-6: 14rem;  /* entre secciones */
-  --radius: 0;       /* esquinas rectas por defecto; 2–4px máx. en inputs */
-}
-.grid { display: grid; grid-template-columns: repeat(var(--cols), 1fr);
-        column-gap: var(--gutter); padding-inline: var(--gutter); }
-```
-
-- 12 columnas en desktop, 4 en móvil. Texto de párrafo nunca más ancho que 5–6 columnas.
-- Composición **asimétrica**: label en col 1–2, texto en col 7–11; imagen que rompe hacia el borde.
-- **Hairlines** de 1px (`--line`) separan filas de listas (proyectos, tracks, FAQ). Son parte del diseño, no bordes de tarjeta.
-- Secciones separadas por `--space-6`. El aire es obligatorio.
-
-### 2.4 Imagen y medios
-
-- Fotos con tratamiento uniforme: ligeramente desaturadas o duotono, alto contraste, recorte agresivo.
-- Video en loop silencioso con botón `Unmute` en mono; formatos webp animado / mp4 h264.
-- **Grain global** siempre (ver §6.8). Opcional: glitch/RGB-shift en hover sobre medios.
-- Mockups de producto sobre fondo oscuro sin sombras exageradas; si hay "objeto" (monitor retro, disco, póster), que tenga presencia física.
-- Leyendas tipo catálogo: `fig. 02 — Descripción` en mono debajo de cada imagen.
-
----
-
-## 3. Sistema de movimiento
-
-### 3.1 Easings (usar solo estos)
-
-```js
-// GSAP
-const EASE = {
-  out:    "expo.out",        // entradas de texto e imágenes (default)
-  inOut:  "expo.inOut",      // transiciones de página, wipes
-  soft:   "power3.out",      // hovers, microinteracciones
-  inQuick:"power2.in",       // salidas
-};
-```
-```css
-:root {
-  --e-out:   cubic-bezier(.16, 1, .3, 1);   /* expo.out */
-  --e-inout: cubic-bezier(.87, 0, .13, 1);  /* expo.inOut */
-  --e-soft:  cubic-bezier(.33, 1, .68, 1);  /* power3.out */
-}
-```
-
-### 3.2 Duraciones
-
-| Tipo | Duración | Stagger |
+| Capa | Qué aporta | Dónde vive |
 |---|---|---|
-| Hover / micro | 0.3–0.45s | — |
-| Reveal de línea de texto | 1.0–1.2s | 0.06–0.08s por línea |
-| Reveal de caracteres (titular hero) | 1.2–1.4s | 0.02–0.035s por letra |
-| Reveal de imagen (máscara) | 1.2–1.6s | — |
-| Transición de página (wipe) | 0.9–1.1s total | — |
-| Preloader completo | 1.8–3.0s (nunca más) | — |
-| Salidas | 40–50% de la entrada | — |
+| **Proceso por etapas** | Preguntas, prioridades y `ROADMAP.md`; puertas de aprobación | [references/stages/](references/stages/) |
+| **Descubrimiento** | Preguntas de producto, marca, UI, stack y seguridad → `PROJECT-BRIEF.md` | [references/discovery.md](references/discovery.md) |
+| **Inteligencia de diseño** (UI/UX Pro Max) | 79 estilos, 192 tipos de producto con paletas, 74 pares tipográficos, 119 reglas UX, 22 stacks | [tools/design-intel/](tools/design-intel/), [references/ux/](references/ux/) |
+| **Identidades** | Noir editorial · Producto shadcn/ui · Catálogo · Híbrida | [references/identities/](references/identities/) |
+| **Lienzos de diseño** | Claude Design · Google Stitch · Figma · directo en código | [references/design-tools/](references/design-tools/) |
+| **Componentes** (shadcn/ui) | Tokens semánticos, composición, CLI, DESIGN.md → tema | [references/shadcn/](references/shadcn/) |
+| **Seguridad** (Cloudflare) | Seguro por defecto, revisión guiada y auditoría completa | [references/security/](references/security/) |
 
-### 3.3 Coreografía
+Funciona en más de 30 agentes de código (Claude Code, Codex, Cursor, Copilot, Gemini CLI, Antigravity, Cline, Amp, Goose, OpenCode, Qwen Code, Junie, Zed, Aider…), en constructores web y chats (Lovable, Bolt, v0, ChatGPT) y con Claude Design y Google Stitch, compartiendo el mismo estado entre todos (§9).
 
-- Orden de entrada en cada sección: **label mono → titular → párrafo → media → CTA**. Cada capa 0.1–0.15s después de la anterior.
-- Texto: entra desde `yPercent: 110` dentro de una máscara `overflow: hidden` (líneas que "suben" desde su propia línea base). Nunca fade-in plano para titulares.
-- Imágenes: `clip-path: inset(100% 0 0 0)` → `inset(0)` + `scale: 1.25 → 1` simultáneo.
-- Parallax sutil: medios a `yPercent: -8 a -15` con `scrub: true`. Nunca más del 20%.
-- Una sola animación "protagonista" por pantalla; lo demás acompaña.
+---
 
-### 3.4 Stack técnico
+## 1. Elige el modo
 
-- **GSAP + ScrollTrigger** (animaciones y scroll), **SplitText** o `SplitType` (división de texto), **Lenis** (scroll suave).
-- **Three.js** solo si hay una escena 3D con propósito (objeto de producto, esfera navegable, shader de fondo).
-- Transiciones de página: **Barba.js** (multi-página estática), o en Next/Astro con View Transitions API / `AnimatePresence`.
-- La herramienta exacta por stack está en §0.2. Los CDN de abajo son solo para HTML/CSS/JS; en frameworks instala por npm (`gsap`, `@gsap/react`, `lenis`).
-- CDN (cdnjs / jsdelivr):
-```html
-<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/lenis@1.1.13/dist/lenis.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/split-type@0.3.4/umd/index.min.js"></script>
+| El usuario pide… | Modo | Qué haces |
+|---|---|---|
+| "Quiero crear mi startup / app / web / landing / MVP", **o el prompt no dice qué quiere hacer** | **Proyecto** | Arranque guiado (§2, paso 1: "¿Qué tipo de proyecto quieres hacer?") y luego E0→E5 |
+| "Sigamos con el proyecto" / hay `ROADMAP.md` | **Retomar** | Lee `ROADMAP.md` (incluido `## Relevo`, aunque lo haya escrito otro agente), verifica el estado y continúa en la etapa actual |
+| "Hazme este componente / animación / sección / página" | **Pieza** | Lee `DESIGN.md` si existe → construye con sus tokens (E2) → verificación de E5 de esa pieza |
+| "Diséñalo en Claude Design / Stitch / Figma" | **Diseño en herramienta** | E1 con [references/design-tools/](references/design-tools/) |
+| "Revisa mi UI / UX / accesibilidad" | **Revisión UX** | [references/ux/ux-rules.md](references/ux/ux-rules.md) por prioridad → informe |
+| "¿Es seguro? / revisa la seguridad antes de lanzar" | **Revisión de seguridad** | [references/security/review.md](references/security/review.md) |
+| "Audita todo el código / pentest / informe formal" | **Auditoría completa** | [references/security/full-audit/AUDIT.md](references/security/full-audit/AUDIT.md) |
+| "Aplica este DESIGN.md / mi marca a shadcn" | **Design system** | [references/shadcn/design-system.md](references/shadcn/design-system.md) |
+
+Si dudas entre dos modos, haz **una** pregunta corta. Nunca arranques la auditoría completa sin que la pidan: crea archivos y lanza muchos agentes.
+
+---
+
+## 2. Proceso por etapas (modo Proyecto)
+
+```
+E0 Planificación → E1 Diseño → E2 Código → E3 Automatizaciones → E4 Seguridad → E5 Optimización y pulido
+```
+
+### Arranque guiado (siempre lo primero en un proyecto)
+
+Antes de diseñar o programar, haz estos 10 pasos **en orden**, un tema por turno, diciendo en qué paso vas (`Paso 4 de 10 · Colores`), **en el idioma del usuario**. Salta los que el prompt o el repo ya respondan y confírmalos en una línea. Tras el paso 1, ofrece una vez el atajo "decido el resto y te muestro el resumen". Detalle, opciones y tablas por tipo: [references/discovery.md](references/discovery.md).
+
+| Paso | Pregunta | Clave |
+|---|---|---|
+| 1 | **¿Qué tipo de proyecto quieres hacer?** Sitio web (landing para tu empresa, portafolio, contenido, estudio con datos) · App o plataforma web (gestión de negocio, SaaS) · App móvil o de escritorio · Tienda — para qué mercado y con qué elementos | Decide las opciones de los pasos siguientes |
+| 2 | **Tecnología:** ¿qué framework? (recomendado según el tipo: Astro, Next.js, Expo, Tauri…) · ¿base de datos? (ninguna, Supabase/Postgres, MySQL, SQLite/Turso, MongoDB, Firebase, CMS) · ¿dónde se publica? | Define componentes y reglas de seguridad de datos |
+| 3 | **¿Qué tipo de diseño quieres?** ¿Ya tienes diseño? → **pausa** y pide que suba todo (capturas, Figma, manual, logo, colores, fuentes). Si no → estilos prediseñados por familia (limpio y profesional · editorial y de autor · audaz y expresivo · suave y cercano: minimalista, noir, barroco, brutalista, orgánico…). Modo claro/oscuro y nivel de movimiento (mínimo · estándar · cinemático) | Diseño subido → salta 4–6 si ya quedan resueltos |
+| 4 | **Colores:** que los escriba (hex o nombres), use los de su logo, o se los recomiendes | Contraste comprobado, un acento |
+| 5 | **Tipografías:** recomendadas (3 pares), las suyas o de Google Fonts | Máx. 3 familias |
+| 6 | **Logo y recursos:** subirlos ahora o dejarlos para el final (wordmark temporal) | Pendiente queda en `ROADMAP.md` |
+| 7 | **Apartados y secciones** sugeridos según el tipo; una página o varias | Base del alcance |
+| 8 | **¿De qué trata el proyecto?** (si no lo dijo) | Fija formato y copy |
+| 9 | **Público y enfoque:** para quién, qué quiere lograr o mostrar, si es un estudio con datos, dispositivo, idiomas, país | Visualización de datos y ley de datos aplicable |
+| 10 | **Seguridad y extras:** cómo entran los usuarios, qué hay que proteger (cuentas, roles, pagos, datos sensibles, varias empresas, IA, archivos), profundidad de seguridad, y "¿algo más que quieras destacar?" | Crea `SECURITY.md` |
+
+Cierra con un resumen de 5–8 líneas y "¿está correcto?"; con la confirmación escribe `PROJECT-BRIEF.md` y `SECURITY.md` y sigue con prioridades y forma de trabajo ([0-planning.md](references/stages/0-planning.md)).
+
+### Etapas
+
+Reglas: [references/stages/README.md](references/stages/README.md). En resumen:
+- **Preguntar antes de construir.** El arranque guiado define el proyecto; E0 añade prioridades y forma de trabajo y lo deja en `ROADMAP.md`.
+- **Una puerta por etapa:** resumen corto + "¿seguimos con la siguiente?". Si el usuario pide todo seguido, no pares, pero registra cada etapa en `ROADMAP.md`.
+- **Profundidad por etapa** (Básico · Estándar · Completo · Omitir), acordada en E0.
+- **El orden es de foco, no de permiso:** la seguridad base y la accesibilidad se aplican desde E2; E4 y E5 las endurecen y verifican. Cada etapa tiene su puerta de seguridad ([stages/README.md](references/stages/README.md#seguridad-en-cada-etapa)) y `SECURITY.md` acompaña todo el proyecto.
+
+| Etapa | Qué pasa | Entregable | Guía |
+|---|---|---|---|
+| **E0 · Planificación** | Detectar contexto → arranque guiado (10 pasos) → prioridades y forma de trabajo | `PROJECT-BRIEF.md`, `SECURITY.md`, `ROADMAP.md` | [0-planning.md](references/stages/0-planning.md) |
+| **E1 · Diseño** | Identidad → sistema de diseño con el motor → pantallas clave en el lienzo elegido | `DESIGN.md` + pantallas | [1-design.md](references/stages/1-design.md) |
+| **E2 · Código** | Stack y auditoría → vía de implementación (desde cero, Claude Design, Stitch, Figma, existente) → flujo P0 | App funcionando en local | [2-code.md](references/stages/2-code.md) |
+| **E3 · Automatizaciones** | Lint, tests, CI, previews y deploy, emails, webhooks, cron, colas, observabilidad | Pipeline en verde | [3-automation.md](references/stages/3-automation.md) |
+| **E4 · Seguridad** | Checklist de lanzamiento, barrido, CSP, revisión guiada o auditoría completa | Sin altos/críticos abiertos | [4-security.md](references/stages/4-security.md) |
+| **E5 · Optimización y pulido** | Medir → rendimiento, SEO, accesibilidad final, pulido de UX, copy y motion → informe | Informe final, listo para lanzar | [5-optimization.md](references/stages/5-optimization.md) |
+
+**Detección inicial (E0, sin preguntar):** `ROADMAP.md`, `PROJECT-BRIEF.md`, `DESIGN.md`, `.stitch/DESIGN.md` (si existen, mandan; no los regeneres sin permiso) · stack por `package.json` y configs · `components.json` (shadcn → `npx shadcn@latest info --json`) · gestor de paquetes por lockfile · CI y hosting · herramientas de la sesión (`/design`, `/design-sync`, MCP de Stitch o Figma).
+
+**Cómo preguntar:** un tema por turno (arranque guiado: 1–3 preguntas; después, máximo 4), con opciones y la **recomendada** primero, y el número de paso visible. Usa la herramienta de preguntas de tu plataforma (p. ej. `AskUserQuestion` en Claude Code) o una lista numerada. Lo que el usuario delegue ("decide tú") se resuelve con defaults y se anota como **Supuesto**.
+
+---
+
+## 3. Reglas no negociables (todas las etapas e identidades)
+
+**Prioridad UX** (de UI/UX Pro Max; en este orden):
+
+| # | Categoría | Imprescindible | Evitar |
+|---|---|---|---|
+| 1 | Accesibilidad | Contraste 4.5:1 (3:1 texto grande/UI), foco visible, alt, teclado, labels, skip link | Quitar outline, botones de solo icono sin nombre |
+| 2 | Interacción | Objetivos ≥24×24px web (44pt iOS / 48dp Android), feedback < 100ms, estado de carga | Depender del hover, cambios de 0ms |
+| 3 | Rendimiento | WebP/AVIF, lazy, espacio reservado (CLS < 0.1), split por ruta | Layout thrashing, JS bloqueante |
+| 4 | Estilo | Un estilo coherente con el producto, iconos SVG de una sola familia | Emojis como iconos, mezclar flat y skeuo |
+| 5 | Layout | Mobile-first, `min-h-dvh`, sin scroll horizontal, max-width consistente | Desactivar zoom, anchos fijos en px |
+| 6 | Tipo y color | Body ≥16px, line-height 1.5, tokens semánticos, cifras tabulares en datos | Gris sobre gris, hex sueltos en componentes |
+| 7 | Animación | Solo `transform`/`opacity`/`clip-path`, salidas más cortas que entradas, interrumpible | Una duración para todo, animar width/height |
+| 8 | Formularios | Label visible, error junto al campo con causa + solución, autocomplete, pegar contraseñas | Placeholder como label, errores solo arriba |
+| 9 | Navegación | Atrás predecible, deep links, estado activo, foco al cambiar de ruta | Modales como navegación principal |
+| 10 | Datos | Tipo de gráfico correcto, leyenda, tabla alternativa, no solo color | Pie con > 5 categorías |
+
+**Tokens:** todo color, tipo, radio, sombra y duración sale de variables con nombres estilo shadcn (`--background`, `--foreground`, `--primary`, `--muted-foreground`, `--border`, `--ring`, `--destructive`…), uses o no shadcn. `DESIGN.md` es la fuente de verdad también para Claude Design, Stitch y Figma.
+
+**Seguridad base desde la primera línea** ([secure-by-default.md](references/security/secure-by-default.md)):
+- Nada de secretos en el cliente ni en el repo (`NEXT_PUBLIC_*`, `VITE_*`, `PUBLIC_*` son públicos).
+- Validación con esquema y **autorización por recurso** en el servidor, en cada endpoint y server action.
+- Nada de HTML crudo de usuario sin sanitizar; SQL siempre parametrizado.
+- Cookies `HttpOnly; Secure; SameSite=Lax`; scripts de CDN con versión fija.
+- Rate limit en auth, formularios públicos, subidas y endpoints de IA.
+
+**Código exportado de herramientas de diseño** (Claude Design, Stitch, Figma) es referencia: se reescribe con los componentes, tokens y convenciones del proyecto.
+
+**Movimiento:** `prefers-reduced-motion` siempre; una animación protagonista por pantalla; nunca bloquees la entrada del usuario.
+
+---
+
+## 4. Motor de diseño
+
+```bash
+node <SKILL_DIR>/tools/design-intel/run.mjs "<consulta>" [--design-system | --domain <d> | --stack <s>] [-n 3] [--json]
+```
+
+`<SKILL_DIR>` = carpeta de este `SKILL.md`. El lanzador busca Python 3 (`python3`, `python`, `py -3`). Sin Python: usa las tablas de este archivo, [catalog.md](references/identities/catalog.md#sin-python) y [ux-rules.md](references/ux/ux-rules.md), y **dilo**.
+
+| Necesito | Uso |
+|---|---|
+| Dirección visual completa | `"saas b2b analytics minimal" --design-system -p "Nombre" [--variance 1-10 --motion 1-10 --density 1-10]` |
+| Estilos · paletas · fuentes | `--domain style` · `--domain color` · `--domain typography` / `google-fonts` |
+| Estructura de landing | `"hero social-proof pricing" --domain landing` |
+| Regla UX concreta | `"error summary validation" --domain ux` (un resultado observable por consulta) |
+| Gráficos · animación · React | `--domain chart` · `--domain gsap` · `--domain react` |
+| Guías por stack | `--stack react|nextjs|vue|svelte|astro|nuxtjs|nuxt-ui|angular|laravel|shadcn|html-tailwind|threejs|react-native|flutter|swiftui|jetpack-compose|…` |
+
+Una intención por consulta (2–5 términos), un reintento más estrecho si sale vacío, y **nunca presentes un resultado vacío como dato**. Los resultados son recomendaciones. Si chocan, manda: marca del usuario → identidad elegida → respuestas de E0 → motor ([1-design.md](references/stages/1-design.md#2-sistema-de-diseño)). No metas datos privados en las consultas.
+
+---
+
+## 5. Identidades y lienzos en una línea
+
+- **Noir editorial** ([noir-editorial.md](references/identities/noir-editorial.md)): fondo casi negro, tipografía gigante, metadatos mono, movimiento lento con peso (GSAP + Lenis), 15 recetas.
+- **Producto shadcn** ([product-shadcn.md](references/identities/product-shadcn.md)): tokens semánticos, componentes compuestos, estilos `vega · nova · maia · lyra · mira · luma · rhea · sera`, puente de tokens con noir.
+- **Catálogo** ([catalog.md](references/identities/catalog.md)): 50 estilos activos × 192 tipos de producto; el motor decide y tú afinas.
+- **Claude Design** ([claude-design.md](references/design-tools/claude-design.md)): `/design-sync` o pack de design system → prototipos y variantes → handoff a Claude Code.
+- **Google Stitch** ([google-stitch.md](references/design-tools/google-stitch.md)): `.stitch/DESIGN.md` como design system del proyecto → pantallas por prompt o MCP → HTML como referencia.
+
+---
+
+## 6. Seguridad de la web que se construye
+
+Prioridad del proyecto, no un anexo. `SECURITY.md` (activos, atacantes, límites de confianza, controles, hallazgos, plan de incidentes) se crea al final del arranque y cada etapa tiene su puerta de seguridad ([stages/README.md](references/stages/README.md#seguridad-en-cada-etapa)).
+
+- **Siempre (E2):** [secure-by-default.md](references/security/secure-by-default.md) — 16 áreas con código por stack, incluidas reglas **por base de datos** (§15: Supabase RLS, Postgres/MySQL con rol mínimo, SQLite/Turso, MongoDB anti-inyección de operadores, reglas de Firebase, CMS) y **después del lanzamiento** (§16).
+- **Básico (E4):** [checklist de lanzamiento](references/security/secure-by-default.md#checklist-de-lanzamiento) + [barrido rápido](references/security/review.md#barrido-rápido-pre-lanzamiento).
+- **Estándar (E4):** revisión guiada ([review.md](references/security/review.md)): límite de confianza + resultado concreto, validar intentando refutar, severidad calibrada, arreglo mínimo.
+- **Completo (E4):** auditoría de 6 fases ([full-audit/AUDIT.md](references/security/full-audit/AUDIT.md)) con `findings.json` validado. Requiere sub-agentes y sandbox; sin sub-agentes, fases en secuencia y dilo en el informe.
+
+Reglas del propio agente: código ajeno en solo lectura; no sondees servicios desplegados ni de terceros; no ejecutes código del objetivo fuera de un sandbox sin red; datos y secretos de prueba siempre ficticios.
+
+---
+
+## 7. Anti-patrones
+
+- Construir sin preguntar ni priorizar; saltarse la puerta de una etapa sin decirlo.
+- Gradientes morado/rosa genéricos "de IA", glassmorphism sin motivo, sombras de tarjeta por todas partes, emojis como iconos.
+- El mismo fade-up de 20px para todo; bounce/elastic sin intención; más de una animación protagonista.
+- Colores crudos (`bg-blue-500`, `#3b82f6`) en componentes; `dark:` manual; pegar el HTML exportado de una herramienta de diseño sin reescribirlo.
+- Markup a mano donde existe componente (`Alert`, `Empty`, `Skeleton`, `Badge`, `Separator`…).
+- Formularios sin label, errores genéricos, sin estados de carga, vacío o error.
+- Secretos en el front, autorización solo en el cliente, `cors('*')` con credenciales, precios que llegan del cliente.
+- Optimizar sin medir; reportar "best practices" ausentes como vulnerabilidades; severidad sin impacto demostrado.
+- Copiar marca, wordmark o contenido de un sitio existente: las identidades son **lenguajes**, no plantillas de alguien.
+
+---
+
+## 8. Mapa de archivos (carga solo lo que necesites)
+
+```
+SKILL.md                          ← router (estás aquí)
+AGENTS.md · agents/openai.yml     ← entrada para Codex / agentes genéricos
+install.mjs                       ← instalador multi-agente
+references/
+  stages/                         ← README + 0-planning · 1-design · 2-code · 3-automation · 4-security · 5-optimization
+  agents.md                       ← agentes compatibles, capacidades y relevo entre agentes
+  discovery.md                    ← cuestionario de producto/startup (E0)
+  stack-matrix.md                 ← herramientas por stack, qué sobra (E2)
+  identities/                     ← README · noir-editorial · product-shadcn · catalog
+  design-tools/                   ← README · claude-design · google-stitch (+ Figma)
+  ux/                             ← ux-rules (119 reglas) · native-app-rules
+  shadcn/                         ← reglas, CLI, registry, DESIGN.md → tema, página de design system
+  security/                       ← secure-by-default · review · full-audit/ (Cloudflare)
+templates/
+  PROJECT-BRIEF.md · SECURITY.md · ROADMAP.md · DESIGN.md · AGENTS-snippet.md
+  portable-instructions.md        ← versión condensada para web y chat (Lovable, Bolt, v0, ChatGPT…)
+  prompts/screen-prompt.md        ← prompt de pantalla (código, Claude Design, Stitch)
+  design-exports/                 ← stitch-DESIGN.md · claude-design-pack.md
+tools/design-intel/               ← motor de búsqueda (Python stdlib, sin red) + datos
 ```
 
 ---
 
-## 4. Estructura de página tipo
+## 9. Compatibilidad entre agentes
 
-1. **Preloader** — contador `00 → 100` en display gigante + línea de estado mono ("Preparing your visit", o log `[ OK ]`). Termina con un wipe vertical que revela el hero.
-2. **Nav** — fija, mínima, en mono: logo-texto a la izquierda (`NOMBRE.`), 3–4 links en mayúsculas, a la derecha un CTA (`LET'S TALK`) y/o estado (`● disponible`, hora local, toggle de sonido, idioma).
-3. **Hero** — wordmark/titular `--t-mega` a ancho completo, anclado abajo. Arriba o al lado: una frase corta en `--t-body` y 2–3 metadatos mono (`15+ YEARS`, `BASED IN …`, fecha de lanzamiento). Indicador `Scroll` con línea animada.
-4. **Statement** — una frase grande (`--t-l`) que se revela palabra por palabra con scrub (opacidad 0.15 → 1).
-5. **Índice / lista** — proyectos, tracks o servicios como filas con hairline: `01 · Nombre ········ Categoría · Año ↗`. Hover revela imagen flotante que sigue al cursor.
-6. **Showcase** — galería con scroll horizontal pinneado o grid asimétrico con leyendas `fig.`.
-7. **Bloque narrativo** — texto editorial con footnotes¹ y notas laterales en mono.
-8. **Testimonios / prueba social** — titular apilado de tres palabras cortas, una por línea, + citas numeradas grandes.
-9. **CTA final** — palabra gigante, email clicable con copiar-al-portapapeles, botón magnético.
-10. **Footer** — columnas mono (SITE / FOLLOW), créditos, `© año`, `Back to top ↑`, y una línea de cierre con personalidad.
+Detalle completo, capacidades por agente y relevo: [references/agents.md](references/agents.md). Instalación: `node install.mjs --list`.
 
----
+| Grupo | Agentes | Instalación |
+|---|---|---|
+| Skills nativas | Claude Code · Codex · Cursor · Copilot · Gemini CLI · Antigravity · Cline · Amp · Goose · OpenCode · Crush · Qwen Code · Mistral Vibe · OpenHands · Kiro · Windsurf · Kilo · Continue · Augment · Droid · Trae · Warp · Qoder · CodeBuddy · Kimi · CodeWhale · ZCode · Roo (legado) | `node install.mjs --agent <nombre> --project <ruta>` o `--global` |
+| Solo instrucciones | JetBrains Junie · Zed · Aider · Replit Agent · Amazon Q | `--agent <nombre> --project <ruta>` (copia + bloque en su archivo) |
+| Cualquiera con `AGENTS.md` | Devin, Jules, Factory y otros | `--agents-md <ruta>` |
+| Web y chat | Lovable · Bolt · v0 · Base44 · ChatGPT · Claude Projects · Gemini Gems | `--portable <ruta>` → pegar `PORTABLE-INSTRUCTIONS.md` |
+| Lienzos de diseño | Claude Design (`/design-sync`, `/design`, pack) · Google Stitch (MCP + `stitch-skills`) · Figma (MCP) | [references/design-tools/](references/design-tools/) |
 
-## 5. Componentes
+**Trabajo entre agentes:** el estado vive en `ROADMAP.md`, `PROJECT-BRIEF.md` y `DESIGN.md`, nunca solo en la memoria de un agente. Al cerrar cada sesión, actualiza `## Relevo` en `ROADMAP.md`; al empezar, léelo, verifica el estado y confirma el siguiente paso. En E4, la revisión la hace un agente distinto del que construyó.
 
-**Botón primario** — rectangular o pastilla, mono mayúsculas, borde 1px `--fg`. Hover: fondo se llena desde abajo (`::before` con `scaleY 0→1`, `transform-origin: bottom`) y el texto hace *roll* (dos copias del label apiladas, se desplazan `yPercent -100`). Magnético (§6.5).
-
-**Link** — subrayado 1px que entra de izquierda a derecha (`scaleX 0→1`, origin left) y sale hacia la derecha (origin right). Externos con `↗` que se desplaza 2px en diagonal en hover.
-
-**Fila de lista** — `display:grid` con índice / título / meta / flecha; `border-top: 1px solid var(--line)`. Hover: título se desplaza `x: 12px`, resto baja a `--fg-faint`, aparece imagen flotante.
-
-**Label de sección** — `[ NOMBRE ]` o `● NOMBRE` + índice `01/` alineado a la derecha.
-
-**Estado del sistema** — punto `●` parpadeante (opacity 1↔.3, 1.2s) + texto mono: `disponible`, `on air`, `cargando…`.
-
-**Copiar al portapapeles** — al click el texto rueda a `Copied!` 1.4s y vuelve.
-
-**Toggle de sonido** — `[S] SOUND: ON/OFF` o barras de ecualizador animadas en CSS. Sonidos UI cortos (<80ms) en hover/click, desactivados por defecto.
-
-**Menú móvil** — overlay a pantalla completa `--bg`, links en display gigante con stagger, cierre con `Esc`.
+Términos neutrales: *preguntar al usuario* = la herramienta de preguntas de tu plataforma o una lista numerada; *sub-agente* = el mecanismo de delegación de tu plataforma (si no existe, trabaja en secuencia); si falta una capacidad, usa la alternativa de [agents.md §2](references/agents.md#2-capacidades-y-equivalencias) y dilo. Las rutas son relativas a `<SKILL_DIR>`.
 
 ---
 
-## 6. Recetas de animación (código de referencia)
-
-### 6.1 Arranque común
-
-```js
-gsap.registerPlugin(ScrollTrigger);
-const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
-
-const lenis = new Lenis({ duration: 1.15, easing: t => Math.min(1, 1.001 - Math.pow(2, -10 * t)) });
-lenis.on("scroll", ScrollTrigger.update);
-gsap.ticker.add(t => lenis.raf(t * 1000));
-gsap.ticker.lagSmoothing(0);
-```
-
-### 6.2 Preloader contador + wipe
-
-```html
-<div class="loader"><span class="loader__num display">00</span>
-  <p class="label">Preparing your visit</p></div>
-```
-```js
-function preloader() {
-  const num = document.querySelector(".loader__num"), o = { v: 0 };
-  return gsap.timeline()
-    .to(o, { v: 100, duration: reduce ? 0.3 : 2, ease: "power2.inOut",
-             onUpdate: () => num.textContent = String(Math.round(o.v)).padStart(2, "0") })
-    .to(".loader", { clipPath: "inset(0 0 100% 0)", duration: 1, ease: "expo.inOut" })
-    .add(heroIn(), "-=0.5");
-}
-```
-```css
-.loader { position: fixed; inset: 0; z-index: 100; background: var(--bg);
-          display: grid; place-content: end start; padding: var(--gutter);
-          clip-path: inset(0 0 0 0); }
-.loader__num { font-size: var(--t-mega); }
-```
-
-### 6.3 Reveal de texto por líneas / caracteres
-
-```css
-.line-mask { overflow: hidden; display: block; }
-```
-```js
-function splitReveal(el, { type = "lines", stagger = 0.07, delay = 0 } = {}) {
-  const s = new SplitType(el, { types: type === "chars" ? "lines,chars" : "lines" });
-  s.lines.forEach(l => { const w = document.createElement("span");
-    w.className = "line-mask"; l.parentNode.insertBefore(w, l); w.appendChild(l); });
-  return gsap.from(type === "chars" ? s.chars : s.lines, {
-    yPercent: 110, rotate: type === "chars" ? 4 : 0, duration: 1.2,
-    ease: "expo.out", stagger, delay });
-}
-function heroIn() {
-  return gsap.timeline()
-    .add(splitReveal(".hero__title", { type: "chars", stagger: 0.03 }))
-    .from(".hero .label", { opacity: 0, y: 10, stagger: 0.08, duration: .8, ease: "power3.out" }, "-=0.9");
-}
-document.querySelectorAll("[data-reveal]").forEach(el =>
-  ScrollTrigger.create({ trigger: el, start: "top 85%", once: true,
-    onEnter: () => splitReveal(el) }));
-```
-
-### 6.4 Statement con scrub palabra por palabra
-
-```js
-const words = new SplitType(".statement", { types: "words" }).words;
-gsap.fromTo(words, { opacity: .15 }, { opacity: 1, stagger: .1, ease: "none",
-  scrollTrigger: { trigger: ".statement", start: "top 75%", end: "bottom 45%", scrub: true } });
-```
-
-### 6.5 Botón magnético
-
-```js
-document.querySelectorAll("[data-magnetic]").forEach(b => {
-  const xTo = gsap.quickTo(b, "x", { duration: .6, ease: "power3.out" }),
-        yTo = gsap.quickTo(b, "y", { duration: .6, ease: "power3.out" });
-  b.addEventListener("pointermove", e => { const r = b.getBoundingClientRect();
-    xTo((e.clientX - r.left - r.width / 2) * .35); yTo((e.clientY - r.top - r.height / 2) * .35); });
-  b.addEventListener("pointerleave", () => { xTo(0); yTo(0); });
-});
-```
-
-### 6.6 Cursor propio + rastro de "tinta"
-
-- Cursor: círculo de 10px `mix-blend-mode: difference`, sigue con `quickTo` (0.35s). Sobre links crece a 56px y muestra texto mono (`VIEW`, `PLAY`, `DRAG`).
-- Rastro: canvas a pantalla completa (`pointer-events:none`) que dibuja trazos suaves que se desvanecen — invita a interactuar.
-
-```js
-const c = document.querySelector("#ink"), ctx = c.getContext("2d"); let pts = [];
-const fit = () => { c.width = innerWidth * devicePixelRatio; c.height = innerHeight * devicePixelRatio;
-                    ctx.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0); };
-fit(); addEventListener("resize", fit);
-addEventListener("pointermove", e => pts.push({ x: e.clientX, y: e.clientY, life: 1 }));
-(function loop() {
-  ctx.clearRect(0, 0, innerWidth, innerHeight);
-  pts = pts.filter(p => (p.life -= 0.018) > 0);
-  ctx.lineCap = "round";
-  for (let i = 1; i < pts.length; i++) {
-    ctx.strokeStyle = `rgba(236,235,231,${pts[i].life * .6})`;
-    ctx.lineWidth = pts[i].life * 14;
-    ctx.beginPath(); ctx.moveTo(pts[i-1].x, pts[i-1].y); ctx.lineTo(pts[i].x, pts[i].y); ctx.stroke();
-  }
-  requestAnimationFrame(loop);
-})();
-```
-Desactivar cursor y rastro en `(pointer: coarse)` y con reduced-motion.
-
-### 6.7 Reveal de imagen con máscara + parallax
-
-```js
-gsap.utils.toArray("[data-img]").forEach(w => {
-  const img = w.querySelector("img");
-  gsap.timeline({ scrollTrigger: { trigger: w, start: "top 80%", once: true } })
-    .fromTo(w, { clipPath: "inset(100% 0 0 0)" }, { clipPath: "inset(0% 0 0 0)", duration: 1.4, ease: "expo.out" })
-    .from(img, { scale: 1.25, duration: 1.6, ease: "expo.out" }, 0);
-  gsap.to(img, { yPercent: -10, ease: "none",
-    scrollTrigger: { trigger: w, start: "top bottom", end: "bottom top", scrub: true } });
-});
-```
-
-### 6.8 Grain global
-
-```css
-body::after { content: ""; position: fixed; inset: -50%; z-index: 90; pointer-events: none;
-  opacity: .07; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  animation: grain 1s steps(6) infinite; }
-@keyframes grain { 0%{transform:translate(0,0)} 33%{transform:translate(-3%,2%)}
-  66%{transform:translate(2%,-3%)} 100%{transform:translate(0,0)} }
-```
-
-### 6.9 Overlay CRT (variante "sistema")
-
-```css
-.crt::before { content:""; position:fixed; inset:0; pointer-events:none; z-index:95;
-  background: repeating-linear-gradient(to bottom, rgba(0,0,0,.25) 0 1px, transparent 1px 3px);
-  mix-blend-mode: multiply; }
-.crt { text-shadow: 0 0 6px color-mix(in srgb, var(--fg) 50%, transparent); }
-```
-Con interruptor "Apagar el tubo" que anima `scaleY 1 → .005 → 0` (efecto TV apagándose, 0.5s).
-
-### 6.10 Glitch / RGB-shift en hover
-
-```css
-.glitch { position: relative; }
-.glitch:hover img { animation: rgb .35s steps(2) 2; }
-@keyframes rgb { 0%{filter:drop-shadow(3px 0 #f0f) drop-shadow(-3px 0 #0ff); transform:translateX(-2px)}
-  50%{filter:drop-shadow(-3px 0 #f0f) drop-shadow(3px 0 #0ff); transform:translateX(2px)}
-  100%{filter:none; transform:none} }
-```
-
-### 6.11 Marquee infinito
-
-```js
-gsap.utils.toArray(".marquee__track").forEach(t => {
-  t.innerHTML += t.innerHTML;
-  const tl = gsap.to(t, { xPercent: -50, duration: 22, ease: "none", repeat: -1 });
-  lenis.on("scroll", ({ velocity }) =>
-    gsap.to(tl, { timeScale: 1 + Math.min(Math.abs(velocity) / 8, 4) * Math.sign(velocity || 1), duration: .4 }));
-});
-```
-
-### 6.12 Scroll horizontal pinneado
-
-```js
-const track = document.querySelector(".h-track");
-gsap.to(track, { x: () => -(track.scrollWidth - innerWidth), ease: "none",
-  scrollTrigger: { trigger: ".h-section", pin: true, scrub: 1, end: () => "+=" + track.scrollWidth,
-                   invalidateOnRefresh: true } });
-```
-
-### 6.13 Imagen flotante en lista (hover)
-
-Al entrar en una fila, una imagen de 320×400 aparece con `scale .8→1, opacity 0→1` y sigue al cursor con `quickTo` (0.5s); entre filas cambia el `src` con un crossfade de 0.25s; al salir de la lista desaparece.
-
-### 6.14 Transición de página
-
-Panel `--bg` a pantalla completa:
-1. Salida: panel entra `clipPath inset(100% 0 0 0) → inset(0)` (0.6s, `expo.inOut`), en el centro aparece el título del destino en display o el índice `02/`.
-2. Cambio de contenido; `lenis.scrollTo(0, { immediate: true })`.
-3. Entrada: panel sale `inset(0) → inset(0 0 100% 0)` (0.7s) + `heroIn()` de la nueva página solapado −0.4s.
-Con View Transitions API: `::view-transition-old(root)` y `new(root)` con las mismas máscaras y `--e-inout`.
-
-### 6.15 Hora local / contador vivo
-
-Reloj mono en la nav (`BOG 17:47`) actualizado cada minuto; indicador de progreso de scroll `00–100` en una esquina.
-
----
-
-## 7. Accesibilidad y rendimiento (no negociable)
-
-- `prefers-reduced-motion: reduce` → sin Lenis, sin parallax ni scrub, sin cursor/rastro; reveals reducidos a fade de 0.3s; preloader ≤0.4s.
-- Contraste: `--fg` sobre `--bg` ≥ 12:1; `--fg-muted` solo en texto ≥ 12px mono, nunca en párrafos largos.
-- Mantener `:focus-visible` visible (outline 1px `--accent`, offset 3px). El cursor custom nunca oculta el foco.
-- Link "Saltar al contenido" al inicio. Menú cerrable con `Esc`. Sonido siempre opt-in.
-- Titulares divididos con SplitType conservan `aria-label` con el texto completo.
-- Animar solo `transform`, `opacity`, `clip-path`. `will-change` solo durante la animación.
-- Fuentes con `font-display: swap` + `preload` de la display. Imágenes `webp/avif`, `loading="lazy"` excepto hero.
-- `ScrollTrigger.refresh()` tras cargar fuentes e imágenes; `gsap.matchMedia()` para desactivar pins en móvil si estorban.
-- Objetivo: LCP < 2.5s aun con preloader (el preloader no debe bloquear el render del hero detrás).
-
----
-
-## 8. Móvil
-
-- Wordmark hero sigue a ancho completo (vw), pero el texto secundario pasa a 4 columnas.
-- Scroll horizontal pinneado → carrusel con scroll-snap nativo.
-- Hover → estados en `:active` y reveals al entrar en viewport. Sin cursor ni imagen flotante.
-- Lenis con `syncTouch: false` (scroll nativo en táctil).
-
----
-
-## 9. Checklist antes de entregar
-
-- [ ] ¿Se definió el stack y se entregó el resumen Usar / Omitir / Quitar (§0)?
-- [ ] ¿El código sigue las convenciones del stack (limpieza, SSR, sin dependencias redundantes)?
-- [ ] ¿El hero es tipográfico y ocupa el ancho?
-- [ ] ¿Hay como máximo 3 familias (display / texto / mono) y un solo acento?
-- [ ] ¿Cada sección tiene label mono + índice?
-- [ ] ¿Todos los titulares entran con máscara (no fade plano)?
-- [ ] ¿Easings solo de la tabla §3.1 y duraciones de §3.2?
-- [ ] ¿Preloader ≤ 3s y omitible en visitas repetidas (sessionStorage con try/catch)?
-- [ ] ¿Grain activo, hairlines en listas, esquinas rectas?
-- [ ] ¿Al menos 3 microinteracciones de autor (magnético, copiar, cursor, sonido, reloj, easter egg)?
-- [ ] ¿Funciona con reduced-motion, teclado y en 375px sin scroll horizontal?
-- [ ] ¿El footer cierra con una frase con personalidad?
-
-## 10. Lo que NUNCA hacer
-
-- Gradientes morados genéricos, glassmorphism, sombras suaves de tarjeta, esquinas muy redondeadas, iconos de librería en todos lados.
-- Fade-up de 20px idéntico para todo. Bounce/elastic. Animaciones de más de 1.6s en elementos individuales.
-- Más de una animación protagonista a la vez. Texto de párrafo centrado en bloques largos.
-- Copiar la marca, wordmark o contenido de cualquier sitio existente: este es un **lenguaje**, no una plantilla de alguien.
+Créditos: material con licencia MIT de [shadcn/ui](https://github.com/shadcn-ui/ui), [cloudflare/security-audit-skill](https://github.com/cloudflare/security-audit-skill) y [nextlevelbuilder/ui-ux-pro-max-skill](https://github.com/nextlevelbuilder/ui-ux-pro-max-skill); flujo de Stitch basado en [google-labs-code/stitch-skills](https://github.com/google-labs-code/stitch-skills) (Apache-2.0). Ver [NOTICE.md](NOTICE.md).

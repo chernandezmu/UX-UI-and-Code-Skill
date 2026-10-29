@@ -1,0 +1,98 @@
+{
+  "skill": "ux-ui-and-code-skill",
+  "how_to_run": "Abre una sesión nueva del agente con la skill instalada, pega el prompt y comprueba cada 'expect'. Marca pass/fail en evals/RESULTS.md con el agente y la fecha.",
+  "cases": [
+    {
+      "id": "vague-prompt",
+      "prompt": "Ayúdame con mi web",
+      "expect": [
+        "Activa la skill",
+        "Empieza por el Paso 1 de 10 (tipo de proyecto) en dos niveles: categoría y luego tipo",
+        "No escribe código ni archivos todavía",
+        "Muestra el número de paso"
+      ]
+    },
+    {
+      "id": "clear-prompt-skips-steps",
+      "prompt": "Quiero una landing en Astro para mi cafetería en Medellín, estilo orgánico, sin base de datos",
+      "expect": [
+        "Confirma en una línea tipo (landing), mercado (cafetería), framework (Astro), base de datos (ninguna) y estilo (orgánico) sin volver a preguntarlos",
+        "Sigue en el paso de colores",
+        "Ofrece el atajo 'decido el resto y te muestro el resumen'"
+      ]
+    },
+    {
+      "id": "has-design-pause",
+      "prompt": "Quiero una app de gestión para mi taller mecánico. Ya tengo el diseño en Figma",
+      "expect": [
+        "Pregunta framework y base de datos (paso 2) antes del diseño",
+        "En el paso 3 hace pausa y pide subir/pegar el diseño (enlace de Figma, capturas, logo, colores, fuentes)",
+        "No inventa colores ni fuentes mientras espera"
+      ]
+    },
+    {
+      "id": "contradiction",
+      "prompt": "Portafolio personal para varias organizaciones, solo frontend, con login de clientes",
+      "expect": [
+        "Detecta la contradicción (solo frontend + login, portafolio + varias organizaciones)",
+        "La aclara con una sola pregunta antes de seguir"
+      ]
+    },
+    {
+      "id": "database-security",
+      "prompt": "App de reservas para clínicas con Supabase y pagos",
+      "expect": [
+        "En el paso 10 pregunta cómo entran los usuarios y qué proteger",
+        "Propone seguridad Estándar o Completa (pagos + datos de salud)",
+        "Al cerrar escribe PROJECT-BRIEF.md y SECURITY.md",
+        "Menciona RLS en todas las tablas y service_role solo en servidor"
+      ]
+    },
+    {
+      "id": "resume-handoff",
+      "setup": "Proyecto con ROADMAP.md cuya sección '## Relevo' dice: etapa E2, siguiente paso 'formulario de contacto'",
+      "prompt": "Sigamos con el proyecto",
+      "expect": [
+        "Lee ROADMAP.md y el relevo",
+        "Resume dónde va el proyecto en 2–3 líneas",
+        "Confirma el siguiente paso antes de seguir",
+        "No repite el arranque guiado"
+      ]
+    },
+    {
+      "id": "single-piece",
+      "setup": "Proyecto con DESIGN.md noir",
+      "prompt": "Hazme un botón magnético para el CTA",
+      "expect": [
+        "Modo Pieza: no hace el arranque guiado",
+        "Usa los tokens y easings de DESIGN.md / noir",
+        "Respeta prefers-reduced-motion y pointer coarse"
+      ]
+    },
+    {
+      "id": "security-review",
+      "prompt": "¿Es seguro lanzar esto?",
+      "expect": [
+        "Usa references/security/review.md (no la auditoría completa)",
+        "No dice 'es seguro': lista lo revisado y lo no revisado",
+        "Cada hallazgo nombra atacante, entrada, control, límite y resultado"
+      ]
+    },
+    {
+      "id": "engine-conflict",
+      "prompt": "Portafolio noir cinemático en Astro",
+      "expect": [
+        "Si el motor devuelve fondo claro o transiciones instantáneas, lo descarta y lo dice",
+        "Paleta y motion salen de noir-editorial.md"
+      ]
+    },
+    {
+      "id": "english-user",
+      "prompt": "I want a website for my startup",
+      "expect": [
+        "Activa la skill",
+        "Hace el arranque guiado en inglés"
+      ]
+    }
+  ]
+}
