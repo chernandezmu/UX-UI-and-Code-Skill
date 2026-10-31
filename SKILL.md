@@ -153,6 +153,7 @@ Una intención por consulta (2–5 términos), un reintento más estrecho si sal
 
 Prioridad del proyecto, no un anexo. `SECURITY.md` (activos, atacantes, límites de confianza, controles, hallazgos, plan de incidentes) se crea al final del arranque y cada etapa tiene su puerta de seguridad ([stages/README.md](references/stages/README.md#seguridad-en-cada-etapa)).
 
+- **Catálogo por clase de ataque:** [hardening.md](references/security/hardening.md) — 35+ clases de ataque conocidas (inyección, XSS, SSRF, XXE, SSTI, smuggling, GraphQL, JWT/OAuth, carrera, pagos, GraphQL, IA, nube, cadena de suministro…) convertidas en defensa concreta. Informado por técnicas ofensivas reales, pero 100% defensivo. Se aplica en E2 por clase y se recorre entero en E4.
 - **Siempre (E2):** [secure-by-default.md](references/security/secure-by-default.md) — 16 áreas con código por stack, incluidas reglas **por base de datos** (§15: Supabase RLS, Postgres/MySQL con rol mínimo, SQLite/Turso, MongoDB anti-inyección de operadores, reglas de Firebase, CMS) y **después del lanzamiento** (§16).
 - **Básico (E4):** [checklist de lanzamiento](references/security/secure-by-default.md#checklist-de-lanzamiento) + [barrido rápido](references/security/review.md#barrido-rápido-pre-lanzamiento).
 - **Estándar (E4):** revisión guiada ([review.md](references/security/review.md)): límite de confianza + resultado concreto, validar intentando refutar, severidad calibrada, arreglo mínimo.
@@ -191,7 +192,7 @@ references/
   design-tools/                   ← README · claude-design · google-stitch (+ Figma)
   ux/                             ← ux-rules (119 reglas) · native-app-rules
   shadcn/                         ← reglas, CLI, registry, DESIGN.md → tema, página de design system
-  security/                       ← secure-by-default · review · full-audit/ (Cloudflare)
+  security/                       ← hardening (defensa por clase de ataque) · secure-by-default · review · full-audit/ (Cloudflare)
 templates/
   PROJECT-BRIEF.md · SECURITY.md · ROADMAP.md · DESIGN.md · AGENTS-snippet.md
   portable-instructions.md        ← versión condensada para web y chat (Lovable, Bolt, v0, ChatGPT…)

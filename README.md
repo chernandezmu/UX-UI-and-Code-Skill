@@ -14,7 +14,7 @@ E0 Planning → E1 Design → E2 Code → E3 Automation → E4 Security → E5 O
 | **E1 · Design** | Identity (noir editorial · product shadcn/ui · catalog of 50 styles × 192 product types) + design engine → key screens in code, Claude Design, Google Stitch or Figma | `DESIGN.md` + screens |
 | **E2 · Code** | Stack audit (Use / Skip / Remove) and implementation from scratch, from a Claude Design handoff, from Stitch HTML, from Figma, or on an existing repo | Working P0 flow |
 | **E3 · Automation** | Lint, tests (Vitest, Playwright, axe), CI, previews and deploys, migrations, emails, webhooks, cron, queues, monitoring | Green pipeline |
-| **E4 · Security** | Launch checklist, pattern sweep, CSP, guided review or Cloudflare's full six-phase audit | No open high/critical findings |
+| **E4 · Security** | Attack-class hardening catalog (35+ classes), launch checklist, pattern sweep, CSP, guided review or Cloudflare's full six-phase audit | No open high/critical findings |
 | **E5 · Optimization** | Measure → Core Web Vitals, SEO, final accessibility, UX/copy/motion polish → before/after report | Ready to launch |
 
 Each stage ends with a gate: the agent summarizes and asks before moving on (or runs straight through if you ask it to). `ROADMAP.md` keeps the state so any session — or any agent — can resume.

@@ -36,7 +36,7 @@ La seguridad no espera a E4. `SECURITY.md` (plantilla en [../../templates/SECURI
 |---|---|---|
 | **E0** | Pasos 2, 9 y 10 del arranque → activos, atacantes, límites de confianza y profundidad en `SECURITY.md` | `SECURITY.md` creado |
 | **E1** | UX segura: login con pegado y gestores de contraseñas, mensajes que no revelan si una cuenta existe, confirmación de acciones destructivas, aviso de privacidad y consentimiento en formularios, ningún dato sensible en pantallas compartibles | Flujos de auth y formularios revisados |
-| **E2** | [secure-by-default.md](../security/secure-by-default.md) §1–§11 y §15 mientras se escribe: secretos, validación + autorización por recurso, base de datos con RLS/reglas/rol mínimo, cabeceras | Ningún endpoint sin validar y autorizar |
+| **E2** | [secure-by-default.md](../security/secure-by-default.md) §1–§11 y §15 + la defensa por clase de [hardening.md](../security/hardening.md) mientras se escribe: secretos, validación + autorización por recurso, base de datos con RLS/reglas/rol mínimo, cabeceras, y el vector concreto de cada pieza (inyección, XSS, SSRF, carrera, pagos…) | Ningún endpoint sin validar y autorizar |
 | **E3** | Seguridad automatizada: audit de dependencias, secret scanning, test de aislamiento entre usuarios/tenants, CSP en report-only en la preview, permisos mínimos en CI | CI falla si aparece un secreto o una dependencia vulnerable crítica |
 | **E4** | Checklist de lanzamiento + barrido + revisión guiada o auditoría completa, idealmente **por un agente distinto** del que construyó; CSP activa | Sin hallazgos altos/críticos abiertos |
 | **E5** | Cabeceras verificadas en producción, `security.txt`, alertas activas, §16 (después del lanzamiento) | `SECURITY.md` cerrado y fechado |

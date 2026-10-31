@@ -14,6 +14,7 @@ Parte de `SECURITY.md` (creado en E0): activos, límites de confianza y profundi
 
 ## Orden de trabajo
 
+0. **Catálogo por clase de ataque:** recorre [../security/hardening.md](../security/hardening.md) (35+ clases) y marca cada una cubierta/no aplica/pendiente en `SECURITY.md`. Es el barrido que garantiza que no se olvida ningún vector conocido.
 1. **Secretos:** barrido del repo **y del build** (`.next/`, `dist/`) en busca de claves; rotar lo que haya salido.
 2. **Autorización:** recorre cada route handler, server action y endpoint; confirma validación + autorización por recurso. Añade el test de aislamiento entre tenants si no existe (E3).
 3. **Cabeceras y CSP:** despliega la CSP primero como `Content-Security-Policy-Report-Only`, revisa violaciones en la preview y luego actívala.

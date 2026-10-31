@@ -36,7 +36,7 @@ Seguridad: cookies HttpOnly, CSP con nonce, rate-limit en auth y IA (detalle en 
 3. Layout raíz, navegación, footer, página 404.
 4. Componentes base (instalados o propios) con todas sus variantes y estados.
 5. Páginas P0 con contenido real.
-6. Datos y auth (proveedor elegido), validación con esquema y **autorización por recurso** (seguridad base obligatoria: [../security/secure-by-default.md](../security/secure-by-default.md) §1–§4 y §15 para la base de datos elegida; marca cada control en `SECURITY.md`).
+6. Datos y auth (proveedor elegido), validación con esquema y **autorización por recurso** (seguridad base obligatoria: [../security/secure-by-default.md](../security/secure-by-default.md) §1–§4 y §15 para la base de datos elegida; aplica además la defensa de las clases que toque el código en [../security/hardening.md](../security/hardening.md); marca cada control en `SECURITY.md`).
 7. Estados: vacío, carga (`Skeleton`), error con recuperación, éxito, sin permisos.
 8. Motion según la identidad (respetando `prefers-reduced-motion`).
 9. P1 si el roadmap lo incluye.

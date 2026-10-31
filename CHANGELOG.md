@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.5.0 · 2026-10-30 · Catálogo de endurecimiento (defensa por clase de ataque)
+
+- Nuevo `references/security/hardening.md`: 35+ clases de ataque conocidas (inyección servidor y cliente, XSS/CSP, prototype pollution, clickjacking, open redirect, postMessage, XXE, deserialización, subida de archivos, path traversal, request smuggling, HPP, cache, SSRF, BOLA/BFLA, mass assignment, GraphQL, JWT, OAuth, sesión, fuerza bruta/enumeración, reset/OTP, carrera/TOCTOU, máquina de estados, precios, abuso de funciones, pagos, cripto/secretos/TLS, IA/LLM, IAM/buckets, contenedor/K8s, dependencias/CDN, CI/CD, escritorio/móvil, DoS, aislamiento de tenants, borrado/privacidad, OSINT/phishing/WAF), cada una con su defensa concreta. Informado por técnicas ofensivas reales; 100% defensivo, sin payloads.
+- Se aplica en E2 por clase y se recorre entero en E4; lista por clase añadida a `SECURITY.md` (§4b).
+- Enlazado desde SKILL §6, `review.md`, `stages/2-code.md`, `stages/4-security.md` y `stages/README.md`.
+
 ## 2.4.1 · 2026-10-28 · Ajustes tras la simulación completa (10 pasos)
 
 - Paso 4: con modo solo oscuro, derivar versiones oscuras de las paletas del motor (que suelen ser claras) y mostrar el contraste; incluir paleta de datos (≥ 3:1, apta para daltonismo) si hay gráficos.

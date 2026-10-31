@@ -52,6 +52,27 @@ Estado: ✅ hecho · ⏳ en curso · ⬜ pendiente · ➖ no aplica · ❓ needs
 | Privacidad | Datos mínimos, logs sin PII, borrar/exportar, política de privacidad | ⬜ |
 | Operación | Monitoreo de errores, alertas, `security.txt`, plan de incidentes | ⬜ |
 
+## 4b. Clases de ataque cubiertas
+
+Recorrido del catálogo [hardening.md](../references/security/hardening.md) (35+ clases). Marca ✅ cubierta · ➖ no aplica · ⬜ pendiente · ❓ needs_validation. Copia aquí solo las que apliquen al proyecto.
+
+| Clase | Estado | Dónde se defiende |
+|---|---|---|
+| Inyección servidor (SQL/NoSQL/cmd) | ⬜ | |
+| XSS + CSP | ⬜ | |
+| SSRF | ⬜ | |
+| XXE / deserialización | ⬜ | |
+| Subida de archivos | ⬜ | |
+| Autorización por objeto (BOLA/IDOR) | ⬜ | |
+| Mass assignment | ⬜ | |
+| JWT / sesión / OAuth | ⬜ | |
+| Fuerza bruta / enumeración | ⬜ | |
+| Carrera / TOCTOU | ⬜ | |
+| Pagos / webhooks | ⬜ | |
+| Aislamiento de tenants | ⬜ | |
+| IA / LLM | ⬜ | |
+| (añade las demás que apliquen) | | |
+
 ## 5. Hallazgos (E4)
 
 | Severidad | Hallazgo | Estado | Test de regresión |

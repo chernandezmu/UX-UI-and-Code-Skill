@@ -18,6 +18,8 @@ Anota en pocas líneas:
 - **Activos:** datos de clientes, dinero/créditos, cuentas, secretos, cuota de gasto.
 - **Controles:** auth, autorización, validación, RLS, CSP, rate limit.
 
+Para cada clase, la **defensa concreta** que debería estar en el código está en [hardening.md](hardening.md): úsalo como referencia de "qué tendría que ver aquí".
+
 ## 2. Elegir clases a cazar
 
 | Si el proyecto tiene… | Mira | Companion |
